@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
+    <link rel="stylesheet" href="./exam/main.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+
+
+    <div class="CreateQuizDiv" style="display: none;">
+      <div style="display: flex; justify-content: center;">
+      </div>
+
+      <br>
+
+
+      <div>
+        <fieldset>
+            <legend>Edit Quiz</legend>
+            <div id="questions"></div>
+            <div style="display: flex; justify-content: center;">
+              <button class="saveQuiz">Save</button>
+              <button class="addNewQuestion">Add question</button>
+            </div>
+        </fieldset>
+      </div>
+
+
+
+
+
+
+    </div>
+
+
+
+    <div class="quiz-app" style="background: #b0b0b0; display: none;">
+
+      <div>
+        <p class="timer">00:00</p>
+      </div>
+
+      <div class="quiz-info" style="text-align: center; display: grid; " dir="auto">
+        
+      
+
+      </div>
+
+      <div class="dadOfQuestions">
+
+
+
+      </div>
+
+   
+      <button class="submit-button">Submit Answer</button>
+
+      <!-- <div class="bullets">
+        <div class="spans"></div>
+        <div class="countdown"></div>
+      </div>
+
+      <div class="results"></div> -->
+
+    </div>
+
+
+    
+    
+  </body>
+
+
+  <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-storage.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-database.js"></script>
+
+  <script src="./exam/cdn/swal.js"></script>
+  <script type="module" src="./exam/main.js"></script>
+</html>

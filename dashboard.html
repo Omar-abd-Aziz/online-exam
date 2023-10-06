@@ -263,7 +263,7 @@ if(docId!==null&&docId.trim()!==''){
     getAllExams();
     /* start getOrdersCount */
 
-    let q = query(collection(db, "exams"));
+    let q = query(collection(db, "exams"),where("AdminId","==",`${docId}`));
     let snapshot = await getCountFromServer(q);
     document.querySelector(".PageOrdersCount").textContent=`${snapshot.data().count}`;
 

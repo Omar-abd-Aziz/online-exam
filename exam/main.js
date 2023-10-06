@@ -1,5 +1,5 @@
 import {docName, initializeApp,firebaseConfig ,getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt,endAt } from '../firebase.js';
-
+let docId = await localStorage.getItem(`${docName}`);
 firebase.initializeApp(firebaseConfig);
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -172,11 +172,10 @@ if(exam!==null&&editExam==null){
   /* */
 
 
-} else if (exam==null&&editExam!==null){
+} else if (exam==null&&editExam!==null&&docId!==null){
+  
 
 
-  document.querySelector(".CreateQuizDiv").style.display="block";
-  document.querySelector(".quiz-app").style.display="none";
 
   let q = query(collection(db, "exams"),where("id","==",`${editExam}`), limit(X||1));
   let querySnapshot = await getDocs(q);
@@ -184,55 +183,68 @@ if(exam!==null&&editExam==null){
   examDATA = cityList
 
   let data= examDATA[0].theExam;
+  if(examDATA[0].AdminId==`${docId}`){
 
+    document.querySelector(".CreateQuizDiv").style.display="block";
+    document.querySelector(".quiz-app").style.display="none";
 
-  data.forEach(function show(question, index) {
-
-      let div=document.createElement("div");
-
-      for(let i = 0; i<6; i++){
-        div.innerHTML+=`
-          <input dir="auto" class="questionChouse" type="text" name="questions[${index}][answers][${i}]" value="${question.answers[i]!==undefined?`${question.answers[i]}`:``}">
-        `;
-      }
-
-
-      let questionDiv = `
-
-      <div>
+    data.forEach(function show(question, index) {
+  
+        let div=document.createElement("div");
+  
+        for(let i = 0; i<6; i++){
+          div.innerHTML+=`
+            <input dir="auto" class="questionChouse" type="text" name="questions[${index}][answers][${i}]" value="${question.answers[i]!==undefined?`${question.answers[i]}`:``}">
+          `;
+        }
+  
+  
+        let questionDiv = `
+  
         <div>
+          <div>
+  
+            <div style="display: flex; justify-content: space-between;">
+              <h5 class="questionNumber" style="margin: 20px 0px; font-size: 18px">
+                (${index + 1})
+              </h5>
+              <span>
+                <i title="حذف" class="fa-solid fa-trash remove" data-question="${JSON.stringify(question)}" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 6px 8px; cursor: pointer;"></i>
+              </span>
+            </div>
 
-          <div style="display: flex; justify-content: space-between;">
-            <h5 class="questionNumber" style="margin: 20px 0px; font-size: 18px">
-              (${index + 1})
-            </h5>
-            <span>
-              <i title="حذف" class="fa-solid fa-trash remove" data-question="${JSON.stringify(question)}" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 6px 8px; cursor: pointer;"></i>
-            </span>
+            <img src="${question.titleImage||""}" class="questionImg" style="width: 100%; display: ${question.titleImage==""?"none":"block"}; border-radius: 10px;">
+  
+            <label for="questions[${index}][title]">Question:</label>
+
+            <i class="fa-solid fa-image addImgToQuestion" id="question_${index}" style="color: darkgreen; cursor: pointer; margin: 5px 10px;"></i>
+
+            <input dir="auto" class="questionTitle" type="text" id="questions[${index}][title]" name="questions[${index}][title]" value="${question.title}">
+            <br>
+            <label for="questions[${index}][title]">Answer:</label>
+            <input dir="auto" class="questionRightAnswer" type="text" name="questions[${index}][right_answer]" value="${question.right_answer}">
+            
           </div>
-
-          <label for="questions[${index}][title]">Question:</label>
-          <input dir="auto" class="questionTitle" type="text" id="questions[${index}][title]" name="questions[${index}][title]" value="${question.title}">
-          <br>
-          <label for="questions[${index}][title]">Answer:</label>
-          <input dir="auto" class="questionRightAnswer" type="text" name="questions[${index}][right_answer]" value="${question.right_answer}">
           
+          <label style="margin: 10px 0px;">Chouses:</label>
+          <div style="display: flex; justify-content: center;">
+            <div>
+              ${div.innerHTML}
+            </div>
+          </div>
+          <hr>
         </div>
         
-        <label style="margin: 10px 0px;">Chouses:</label>
-        <div style="display: flex; justify-content: center;">
-          <div>
-            ${div.innerHTML}
-          </div>
-        </div>
-        <hr>
-      </div>
       
-    
-      `;
+        `;
+  
+        document.querySelector("#questions").innerHTML+=questionDiv;
+    });
 
-      document.querySelector("#questions").innerHTML+=questionDiv;
-  });
+  } else{
+    Swal.fire("عفولا لا يمكنك تعديل هذا الاختبار لانك لست مالكه","","error")
+  }
+
 
 
 };
@@ -255,6 +267,7 @@ document.querySelector(".saveQuiz").addEventListener("click",async()=>{
   });
 
   let questionTitles = document.getElementsByClassName('questionTitle');
+  let questionImages = document.getElementsByClassName('questionImg');
   let rightAnswers = document.getElementsByClassName('questionRightAnswer');
   let answerInputs = document.getElementsByClassName('questionChouse');
 
@@ -263,7 +276,7 @@ document.querySelector(".saveQuiz").addEventListener("click",async()=>{
   for (let i = 0; i < questionTitles.length; i++) {
     let title = questionTitles[i].value.trim();
     let rightAnswer = rightAnswers[i].value.trim();
-
+    let titleImage = questionImages[i].src||"";
     let answers = [];
     for (let j = 0; j < 6; j++) {
       answers.push(answerInputs[i * 6 + j].value.trim());
@@ -273,6 +286,7 @@ document.querySelector(".saveQuiz").addEventListener("click",async()=>{
 
     let questionData = {
       title: title,
+      titleImage: titleImage,
       right_answer: rightAnswer,
       answers: filteredAnswers
     };
@@ -326,7 +340,14 @@ document.querySelector(".addNewQuestion").addEventListener("click",()=>{
           </span>
         </div>
 
+        <img src="" class="questionImg" style="width: 100%; display: none; border-radius: 10px;">
+
         <label for="questions[${i}][title]">Question:</label>
+
+        
+        <i class="fa-solid fa-image addImgToQuestion" id="question_${i}" style="color: darkgreen; cursor: pointer; margin: 5px 10px;"></i>
+        
+
         <input dir="auto" class="questionTitle" type="text" id="questions[${i}][title]" name="questions[${i}][title]" value="">
         <br>
         <label for="questions[${i}][title]">Answer:</label>
@@ -379,11 +400,52 @@ function resetCount(){
 }
 
 
+function getImgLinkFromInput(imgQuestion){
+  let inputImg = document.querySelector("#addImgToQuestionInput");
+  inputImg.addEventListener("change",async(e)=>{
 
+    Swal.fire({
+      title: 'Please Wait!',
+      didOpen: () => {
+        Swal.showLoading()
+      }
+    });
+
+    let src="";
+    let ref = firebase.storage().ref();
+    let file = inputImg.files[0];
+    let name = +new Date() + "-" + file.name;
+    let metadata = {
+      contentType: file.type
+    };
+  
+    let task = ref.child(name).put(file, metadata);
+    task
+    .then(async snapshot => snapshot.ref.getDownloadURL())
+    .then(async url => {
+      console.log(url);
+      imgQuestion.src=`${url||""}`;
+      imgQuestion.style.display="block";
+      Swal.fire("Done","","success");
+    })
+
+  });
+  inputImg.click();
+}
 
 
 window.onclick=async(e)=>{
   
+
+
+  
+  if([...e.target.classList].includes("addImgToQuestion")){
+    let imgQuestion = e.target.parentNode.parentNode.querySelector(".questionImg");
+    console.log(imgQuestion)
+    getImgLinkFromInput(imgQuestion);
+  }
+
+
   if([...e.target.classList].includes("remove")){
 
     Swal.fire({
@@ -582,7 +644,7 @@ function showAllQuestions(array){
           divForAnswers.innerHTML+=`
             
           <div class="answer">
-              <input ${(j==1)?"required":""} name="question" type="radio" class="answer_${i+1}" id="answer_${i+1}_${j+1}" value="${array[i].answers[j]}" data-answer="${array[i].answers[j]}">
+              <input class="answersInput" ${(j==1)?"required":""} name="question" type="radio" class="answer_${i+1}" id="answer_${i+1}_${j+1}" value="${array[i].answers[j]}" data-answer="${array[i].answers[j]}">
               <label for="answer_${i+1}_${j+1}">${array[i].answers[j]}</label>
           </div>
           
@@ -597,6 +659,7 @@ function showAllQuestions(array){
         <div class="questionDiv" style="position: relative;">
             <p class="questionNumer">${i+1}</p>
             <div class="quiz-area" dir="auto">
+              <img src="${array[i].titleImage}" class="questionImg" style="width: 100%; display: ${array[i].titleImage==""?"none":"block"};">
               <bdi class="theQuestion" dir="auto">
               ${array[i].title}
               </bdi>

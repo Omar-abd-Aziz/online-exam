@@ -48,7 +48,7 @@ if(exam!==null&&editExam==null){
   let cityList = querySnapshot.docs.map(doc => doc.data());
   examDATA = cityList;
 
-  console.log(examDATA)
+  // console.log(examDATA)
 
   /* */
   let startDate = new Date(examDATA[0].dateStart);
@@ -177,11 +177,12 @@ if(exam!==null&&editExam==null){
 
 
 
+
   let q = query(collection(db, "exams"),where("id","==",`${editExam}`), limit(X||1));
   let querySnapshot = await getDocs(q);
   let cityList = querySnapshot.docs.map(doc => doc.data());
   examDATA = cityList
-
+  
   let data= examDATA[0].theExam;
   if(examDATA[0].AdminId==`${docId}`){
 
@@ -247,6 +248,8 @@ if(exam!==null&&editExam==null){
 
 
 
+} else if (exam==null&&editExam!==null&&docId==null){
+  location.href="./login/login.html";
 };
 
 
@@ -276,7 +279,8 @@ document.querySelector(".saveQuiz").addEventListener("click",async()=>{
   for (let i = 0; i < questionTitles.length; i++) {
     let title = questionTitles[i].value.trim();
     let rightAnswer = rightAnswers[i].value.trim();
-    let titleImage = questionImages[i].src||"";
+    let titleImage = (questionImages[i].style.display!=="none")?questionImages[i].src:"";
+    
     let answers = [];
     for (let j = 0; j < 6; j++) {
       answers.push(answerInputs[i * 6 + j].value.trim());
@@ -340,7 +344,7 @@ document.querySelector(".addNewQuestion").addEventListener("click",()=>{
           </span>
         </div>
 
-        <img src="" class="questionImg" style="width: 100%; display: none; border-radius: 10px;">
+        <img src="#" class="questionImg" style="width: 100%; display: none; border-radius: 10px;">
 
         <label for="questions[${i}][title]">Question:</label>
 

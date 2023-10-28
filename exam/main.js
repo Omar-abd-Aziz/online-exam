@@ -184,6 +184,7 @@ if(exam!==null&&editExam==null){
   examDATA = cityList
   
   let data= examDATA[0].theExam;
+  console.log(data)
   if(examDATA[0].AdminId==`${docId}`){
 
     document.querySelector(".CreateQuizDiv").style.display="block";
@@ -298,8 +299,19 @@ document.querySelector(".saveQuiz").addEventListener("click",async()=>{
     extractedData.push(questionData);
   };
 
-  let filteredData = extractedData.filter(item => item.title.trim()!=="");
+  let filteredData=[];
+  extractedData.forEach(e=>{
+    if(e.titleImage==""&&e.title==""){
+      
+    }else{
+      filteredData.push(e);
+    }
+  });
 
+  console.log(filteredData);
+
+  // let filteredData2 = extractedData.filter(item => item.title.trim()!=="");
+  // console.log(filteredData2);
   
   await setDoc(doc(db,"exams",`${examDATA[0].id}`),{
     ...examDATA[0],

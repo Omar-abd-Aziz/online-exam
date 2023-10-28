@@ -569,6 +569,9 @@ if([...e.target.classList].includes("downloadAllResultsPdf")){
         <td style="text-align: center; border: 1px solid #dddddd; padding: 8px;">${el.userName}</td>
         <td style="text-align: center; border: 1px solid #dddddd; padding: 8px;">${el.phoneNumber}</td>
         <td style="text-align: center; border: 1px solid #dddddd; padding: 8px;">${el.result}</td>
+        <td style="text-align: center; border: 1px solid #dddddd; padding: 8px;">
+          <i title="حذف" class="fa-solid fa-trash removeStudentResult" data-exam-id="${examId}" data-id="${el.id}" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 6px 8px; cursor: pointer;"></i>
+        </td>
       </tr>
     `;
   })
@@ -583,6 +586,7 @@ if([...e.target.classList].includes("downloadAllResultsPdf")){
             <td style="text-align: center; background: var(--main-bg);color: white; border: 1px solid #dddddd; padding: 8px;">Name</td>
             <td style="text-align: center; background: var(--main-bg);color: white; border: 1px solid #dddddd; padding: 8px;">PhoneNumber</td>
             <td style="text-align: center; background: var(--main-bg);color: white; border: 1px solid #dddddd; padding: 8px;">Result</td>
+            <td style="text-align: center; background: var(--main-bg);color: white; border: 1px solid #dddddd; padding: 8px;">edit</td>
           </tr>
           ${div.innerHTML}
         </tbody>
@@ -792,6 +796,57 @@ if([...e.target.classList].includes("removeOrder")){
 };
 
 /* end remove product */
+
+
+
+
+/* start remove student result */
+if([...e.target.classList].includes("removeStudentResult")){
+
+
+  let studentResultId=e.target.dataset.id;
+  let examId=e.target.dataset.examId;
+
+  let studentResultDoc=doc(db,"exams",`${examId}`,`results`,`${studentResultId}`);
+
+  deleteDoc(studentResultDoc); 
+
+  e.target.parentNode.parentNode.remove()
+
+
+  // Swal.fire({
+  // title: 'Are you want to delet it?',
+  // text: "You won't be able to revert this!",
+  // icon: 'warning',
+  // showCancelButton: true,
+  // confirmButtonColor: '#3085d6',
+  // cancelButtonColor: '#d33',
+  // confirmButtonText: 'Yes, delete it!'
+  // }).then((result) => {
+  //   if (result.isConfirmed) {
+
+  //     let studentResultId=e.target.dataset.id;
+  //     let examId=e.target.dataset.examId;
+
+  //     let studentResultDoc=doc(db,"exams",`${examId}`,`results`,`${studentResultId}`);
+
+  //     deleteDoc(studentResultDoc); 
+
+  //     Swal.fire(
+  //       'Deleted!',
+  //       'Product has been deleted.',
+  //       'success'
+  //     );
+
+
+
+  //   }
+  // })
+
+
+};
+
+/* end remove student result */
 
 
 

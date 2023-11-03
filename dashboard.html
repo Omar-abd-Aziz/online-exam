@@ -491,6 +491,10 @@ function showExams(array){
         </a>
 
         <a>
+          <i title="اخفاء/اظهار النتيجة" class="fa-sharp fa-solid ${el.isHidden==true?`fa-eye-slash`:`fa-eye`} Result-Hidden" data-id="${el.id}" style="font-size: 25px; color: #233245; background: white; border-radius: 50%; padding: 5px 5px; cursor: pointer;"></i>
+        </a>
+
+        <a>
           <i title="تعديل" class="fa-solid fa-pen-to-square editOrder" data-id="${el.id}" style="font-size: 20px; color: #e0dfdf; background: #233245; border-radius: 50%; padding: 5px 5px; cursor: pointer;"></i>
         </a>
 
@@ -539,6 +543,74 @@ function showExams(array){
 /*//////////////////////////////////////////////////////////////////*/
 
 window.onclick=async(e)=>{
+
+/* start Result-Hidden btn */ 
+
+if([...e.target.classList].includes("Result-Hidden")){
+
+
+  let icon = e.target;
+
+  let examId=e.target.dataset.id;
+  let examData=AllPersonsData.find(el=>el.id==`${examId}`);
+
+  // console.log(productData)
+  let title = `هل تريد ${examData.isHidden==true?"اظهار":"اخفاء"} نتيجة هذا الاختبار للطلاب عند انهائهم للاختبار ؟`;
+
+  Swal.fire({
+  title: `${title}`,
+  text: "",
+  icon: 'warning',
+  showCancelButton: true,
+  confirmButtonColor: '#3085d6',
+  cancelButtonColor: '#d33',
+  confirmButtonText: 'Yes'
+  }).then((result) => {
+    if (result.isConfirmed) {
+
+      Swal.fire({
+        title: 'Please Wait!',
+        didOpen: () => {
+          Swal.showLoading()
+        }
+      });
+
+      let x = (examData.isHidden==true?false:true);
+
+      setDoc(doc(db,"exams",examId),{
+        ...examData,
+        isHidden: x,
+      }).then(e=>{
+
+        examData.isHidden=x;
+
+        if(x){
+          icon.classList.remove("fa-eye");
+          icon.classList.add("fa-eye-slash");
+        }else{
+          icon.classList.add("fa-eye");
+          icon.classList.remove("fa-eye-slash");
+        }
+
+        Swal.fire(
+          'Done!',
+          '',
+          'success'
+        );
+
+      });
+
+
+    }
+  })
+
+
+};
+
+/* end Result-Hidden btn*/
+
+
+
 
 if([...e.target.classList].includes("printPage")){
 

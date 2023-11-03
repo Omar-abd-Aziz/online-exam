@@ -588,9 +588,25 @@ submitButton.addEventListener("click",async()=>{
         result: True+"/"+Questions.length,
       }).then(el=>{
         Swal.fire("Done","","success");
-        Swal.fire("Your Score Is: "+True+"/"+Questions.length,"","success").then(el=>{
-          window.close();
-        })
+
+        console.log(examDATA[0].is)
+
+        if(examDATA[0].isHidden==true){
+
+          Swal.fire("تم ارسال اجاباتك بالتوفيق","","success").then(el=>{
+            window.close();
+          });
+          
+        }else{
+
+          Swal.fire("Your Score Is: "+True+"/"+Questions.length,"","success").then(el=>{
+            window.close();
+          });
+
+        };
+
+
+
 
         document.querySelector(".CreateQuizDiv").style.display="none";
         document.querySelector(".quiz-app").style.display="none";

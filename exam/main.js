@@ -418,7 +418,10 @@ function resetCount(){
 
 function getImgLinkFromInput(imgQuestion){
   let inputImg = document.querySelector("#addImgToQuestionInput");
+
   inputImg.addEventListener("change",async(e)=>{
+
+    console.log("omar");
 
     Swal.fire({
       title: 'Please Wait!',
@@ -440,12 +443,13 @@ function getImgLinkFromInput(imgQuestion){
     .then(async snapshot => snapshot.ref.getDownloadURL())
     .then(async url => {
       console.log(url);
+      
       imgQuestion.src=`${url||""}`;
       imgQuestion.style.display="block";
       Swal.fire("Done","","success");
     })
 
-  });
+  }, { once: true });
   inputImg.click();
 }
 

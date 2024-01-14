@@ -25,6 +25,7 @@ let queryString = window.location.search;
 let urlParams = new URLSearchParams(queryString);
 let exam = urlParams.get('exam');
 let editExam = urlParams.get('editExam');
+let studentAnswerId = urlParams.get('studentAnswerId');
 let examDATA;
 
 
@@ -38,7 +39,7 @@ function checkQuizAvailability(dateStart,dateEnd) {
 }
 
 
-if(exam!==null&&editExam==null){
+if(exam!==null&&editExam==null&&studentAnswerId==null){
 
 
 
@@ -172,7 +173,7 @@ if(exam!==null&&editExam==null){
   /* */
 
 
-} else if (exam==null&&editExam!==null&&docId!==null){
+} else if (exam==null&&studentAnswerId==null&&editExam!==null&&docId!==null){
   
 
 
@@ -249,9 +250,72 @@ if(exam!==null&&editExam==null){
 
 
 
-} else if (exam==null&&editExam!==null&&docId==null){
+} else if (exam==null&&studentAnswerId==null&&editExam!==null&&docId==null){
   location.href="./login/login.html";
-};
+} else if (exam!==null&&studentAnswerId!==null&&editExam==null){
+
+  
+  // Swal.fire({
+  //   title: 'Please Wait!',
+  //   didOpen: () => {
+  //     Swal.showLoading()
+  //   }
+  // });
+
+
+
+
+  let q = query(collection(db,"exams",`${exam}`,`results`),where("id","==",`${studentAnswerId}`), limit(X||1));
+  let snapshot = await getCountFromServer(q);
+  console.log(snapshot.data().count)
+
+  if(snapshot.data().count!==1){
+    Swal.fire("لا يوجد اجابات لهذا الطالب","","error");
+  } else {
+
+
+
+    let querySnapshot = await getDocs(q);
+    let cityList = querySnapshot.docs.map(doc => doc.data());
+    let examDATAwithStudentAnswer = cityList;
+
+    q = query(collection(db, "exams"),where("id","==",`${exam}`), limit(X||1));
+    querySnapshot = await getDocs(q);
+    cityList = querySnapshot.docs.map(doc => doc.data());
+    examDATA = cityList;
+
+    console.log(examDATA);
+    console.log(examDATAwithStudentAnswer);
+
+
+    document.querySelector(".quiz-app").style.display="block";
+
+    document.querySelector(".quiz-info").innerHTML=`
+
+    <bdi style="margin: 5px;font-size: 20px;font-family: cairo;font-weight: bold;">
+    اسم الاختبار: ${examDATA[0].examName}
+    </bdi>
+
+    <bdi style="margin: 5px;font-size: 20px;font-family: cairo;font-weight: bold;">
+    اسم الطالب: ${examDATAwithStudentAnswer[0].userName} 
+    </bdi>
+
+    <bdi style="margin: 5px;font-size: 20px;font-family: cairo;font-weight: bold;">
+    رقم هاتف الطالب : ${examDATAwithStudentAnswer[0].phoneNumber} 
+    </bdi>
+
+    <bdi style="margin: 5px;font-size: 20px;font-family: cairo;font-weight: bold;">
+      نتيجة الطالب : ${examDATAwithStudentAnswer[0].result} 
+    </bdi>
+
+    `;
+
+    
+    showAllQuestionsWithStudentAnswers(examDATAwithStudentAnswer[0].Questions);
+
+  }
+
+}
 
 
 
@@ -603,8 +667,24 @@ submitButton.addEventListener("click",async()=>{
           
         }else{
 
-          Swal.fire("Your Score Is: "+True+"/"+Questions.length,"","success").then(el=>{
-            window.close();
+          console.log(Questions)
+
+          Swal.fire({
+            title: `Your Score Is: ${True}/${Questions.length}`,
+            icon: 'success',
+            showCloseButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Show Answers',
+          }).then(el=>{
+
+            if(el.isConfirmed){
+              location.href=window.location.origin+`?exam=${examDATA[0].id}&studentAnswerId=${id}`;
+              console.log("done")
+            }else{
+              window.close();
+            }
+
           });
 
         };
@@ -720,6 +800,121 @@ function showAllQuestions(array){
 
 
 
+function showAllQuestionsWithStudentAnswers(array){
+
+  document.querySelector(".submit-button").style.display="none";
+  
+  let dadOfQuestions = document.querySelector(".dadOfQuestions");
+  
+  dadOfQuestions.innerHTML=``;
+  
+  for(let i = 0; i<array.length; i++){
+  
+      let divForAnswers = document.createElement("div");
+      // console.log(array[i].answers);
+
+      for(let j = 0; j<array[i].answers.length; j++){
+
+
+        if(array[i].right_answer==array[i].student_answer){
+
+          if(array[i].answers[j]==array[i].right_answer){
+
+            console.log(array[i].answers[j]==array[i].right_answer)
+  
+            divForAnswers.innerHTML+=`
+            
+            <div class="answer" style="background: #00800024; cursor: auto;">
+              <i class="fa-solid fa-check" style="font-size: 13px; margin: 10px; color: white; background: green; border-radius: 50%; padding: 5px 5px;"></i>
+              <label style="color: green; cursor: auto !important;">${array[i].answers[j]}</label>
+            </div>
+            
+            `;
+            
+          } else{
+
+            divForAnswers.innerHTML+=`
+          
+            <div class="answer" style=" cursor: auto;">
+              <label style=" cursor: auto !important;">${array[i].answers[j]}</label>
+            </div>
+            
+            `;
+
+          }
+
+        }else if(array[i].right_answer!==array[i].student_answer){
+
+          if(array[i].answers[j]==array[i].right_answer){
+
+            console.log(array[i].answers[j]==array[i].right_answer)
+  
+            divForAnswers.innerHTML+=`
+            
+            <div class="answer" style="background: #00800024; cursor: auto;">
+              <i class="fa-solid fa-check" style="font-size: 13px; margin: 10px; color: white; background: green; border-radius: 50%; padding: 5px 5px;"></i>
+              <label style="color: green; cursor: auto !important;">${array[i].answers[j]}</label>
+            </div>
+            
+            `;
+            
+          } else if(array[i].answers[j]==array[i].student_answer){
+
+            divForAnswers.innerHTML+=`
+          
+            <div class="answer" style="background: #80000024; cursor: auto;">
+              <i class="fa-solid fa-xmark" style="font-size: 13px; margin: 10px; color: white; background: red; border-radius: 50%; padding: 5px 7px 5px 8px;"></i>
+              <label style="color: red; cursor: auto !important;">${array[i].answers[j]}</label>
+            </div>
+            
+            `;
+
+          }  else{
+
+            divForAnswers.innerHTML+=`
+          
+            <div class="answer" style=" cursor: auto;">
+              <label style=" cursor: auto !important;">${array[i].answers[j]}</label>
+            </div>
+            
+            `;
+
+          }
+          
+        };
+
+
+
+      };
+
+  
+     
+      dadOfQuestions.innerHTML+=`
+      
+      
+      <div class="questionDiv" style="position: relative;">
+          <p class="questionNumer">${i+1}</p>
+          <div class="quiz-area" dir="auto">
+            <img src="${array[i].titleImage}" class="questionImg" style="width: 100%; display: ${array[i].titleImage==""?"none":"block"};">
+            <bdi class="theQuestion" dir="auto">
+            ${array[i].title}
+            </bdi>
+          </div>
+    
+          <form class="answers-area answers-area-${i+1}" dir="auto">
+            ${divForAnswers.innerHTML}
+          </form>
+  
+      </div>
+      
+      
+      
+      `;
+  
+  };
+  
+
+}    
 
 
 

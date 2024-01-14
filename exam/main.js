@@ -657,7 +657,7 @@ submitButton.addEventListener("click",async()=>{
       }).then(el=>{
         Swal.fire("Done","","success");
 
-        console.log(examDATA[0].is)
+        // console.log(examDATA[0].is)
 
         if(examDATA[0].isHidden==true){
 
@@ -665,9 +665,9 @@ submitButton.addEventListener("click",async()=>{
             window.close();
           });
           
-        }else{
+        }else if(examDATA[0].isHidden!==true&&examDATA[0].trueAnswersShowisHidden!==true){
 
-          console.log(Questions)
+          // console.log(Questions)
 
           Swal.fire({
             title: `Your Score Is: ${True}/${Questions.length}`,
@@ -680,11 +680,28 @@ submitButton.addEventListener("click",async()=>{
 
             if(el.isConfirmed){
               location.href=window.location.origin+`?exam=${examDATA[0].id}&studentAnswerId=${id}`;
-              console.log("done")
+              // console.log("done")
             }else{
               window.close();
             }
 
+          });
+
+        } else if(examDATA[0].isHidden!==true&&examDATA[0].trueAnswersShowisHidden==true){
+
+          // console.log(Questions)
+
+          Swal.fire({
+            title: `Your Score Is: ${True}/${Questions.length}`,
+            icon: 'success',
+            showCloseButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Done',
+          }).then(el=>{
+
+            window.close();
+            
           });
 
         };

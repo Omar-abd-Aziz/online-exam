@@ -197,7 +197,7 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
   
         for(let i = 0; i<6; i++){
           div.innerHTML+=`
-            <input dir="auto" class="questionChouse" type="text" name="questions[${index}][answers][${i}]" value="${question.answers[i]!==undefined?`${question.answers[i]}`:``}">
+            <input dir="auto" class="questionChouse" type="text" name="questions[${index}][answers][${i}]" value="${question.answers[i]!==undefined?`${escapeHtml(question.answers[i])}`:``}">
           `;
         }
   
@@ -212,7 +212,7 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
                 (${index + 1})
               </h5>
               <span>
-                <i title="حذف" class="fa-solid fa-trash remove" data-question="${JSON.stringify(question)}" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 6px 8px; cursor: pointer;"></i>
+                <i title="حذف" class="fa-solid fa-trash remove" data-question="${escapeHtml(JSON.stringify(question))}" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 6px 8px; cursor: pointer;"></i>
               </span>
             </div>
 
@@ -222,10 +222,10 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
 
             <i class="fa-solid fa-image addImgToQuestion" id="question_${index}" style="color: darkgreen; cursor: pointer; margin: 5px 10px;"></i>
 
-            <input dir="auto" class="questionTitle" type="text" id="questions[${index}][title]" name="questions[${index}][title]" value="${question.title}">
+            <input dir="auto" class="questionTitle" type="text" id="questions[${index}][title]" name="questions[${index}][title]" value="${escapeHtml(question.title)}">
             <br>
             <label for="questions[${index}][title]">Answer:</label>
-            <input dir="auto" class="questionRightAnswer" type="text" name="questions[${index}][right_answer]" value="${question.right_answer}">
+            <input dir="auto" class="questionRightAnswer" type="text" name="questions[${index}][right_answer]" value="${escapeHtml(question.right_answer)}">
             
           </div>
           
@@ -754,6 +754,9 @@ submitButton.addEventListener("click",async()=>{
 
 
 
+function escapeHtml(unsafeInput) {
+  return unsafeInput.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
 
 
 
@@ -774,14 +777,22 @@ function showAllQuestions(array){
         // console.log(array[i].answers);
 
         for(let j = 0; j<array[i].answers.length; j++){
+
+
           divForAnswers.innerHTML+=`
             
           <div class="answer">
-              <input class="answersInput" ${(j==1)?"required":""} name="question" type="radio" class="answer_${i+1}" id="answer_${i+1}_${j+1}" value="${array[i].answers[j]}" data-answer="${array[i].answers[j]}">
-              <label for="answer_${i+1}_${j+1}">${array[i].answers[j]}</label>
+              <input class="answersInput" ${(j==1)?"required":""} name="question" type="radio" class="answer_${i+1}" id="answer_${i+1}_${j+1}" value="${escapeHtml(array[i].answers[j])}" data-answer="${escapeHtml(array[i].answers[j])}">
+              <label for="answer_${i+1}_${j+1}">
+                
+                ${escapeHtml(array[i].answers[j])}
+                
+              </label>
+              
           </div>
           
-          `
+          `;
+          // ${array[i].answers[j]}
         }
 
     
@@ -794,7 +805,7 @@ function showAllQuestions(array){
             <div class="quiz-area" dir="auto">
               <img src="${array[i].titleImage}" class="questionImg" style="width: 100%; display: ${array[i].titleImage==""?"none":"block"};">
               <bdi class="theQuestion" dir="auto">
-              ${array[i].title}
+              ${escapeHtml(array[i].title)}
               </bdi>
             </div>
       
@@ -842,8 +853,8 @@ function showAllQuestionsWithStudentAnswers(array){
             divForAnswers.innerHTML+=`
             
             <div class="answer" style="background: #00800024; cursor: auto;">
+              <label style="color: green; cursor: auto !important;">${escapeHtml(array[i].answers[j])}</label>
               <i class="fa-solid fa-check" style="font-size: 13px; margin: 10px; color: white; background: green; border-radius: 50%; padding: 5px 5px;"></i>
-              <label style="color: green; cursor: auto !important;">${array[i].answers[j]}</label>
             </div>
             
             `;
@@ -853,7 +864,7 @@ function showAllQuestionsWithStudentAnswers(array){
             divForAnswers.innerHTML+=`
           
             <div class="answer" style=" cursor: auto;">
-              <label style=" cursor: auto !important;">${array[i].answers[j]}</label>
+              <label style=" cursor: auto !important;">${escapeHtml(array[i].answers[j])}</label>
             </div>
             
             `;
@@ -869,8 +880,8 @@ function showAllQuestionsWithStudentAnswers(array){
             divForAnswers.innerHTML+=`
             
             <div class="answer" style="background: #00800024; cursor: auto;">
+              <label style="color: green; cursor: auto !important;">${escapeHtml(array[i].answers[j])}</label>
               <i class="fa-solid fa-check" style="font-size: 13px; margin: 10px; color: white; background: green; border-radius: 50%; padding: 5px 5px;"></i>
-              <label style="color: green; cursor: auto !important;">${array[i].answers[j]}</label>
             </div>
             
             `;
@@ -880,8 +891,8 @@ function showAllQuestionsWithStudentAnswers(array){
             divForAnswers.innerHTML+=`
           
             <div class="answer" style="background: #80000024; cursor: auto;">
+              <label style="color: red; cursor: auto !important;">${escapeHtml(array[i].answers[j])}</label>
               <i class="fa-solid fa-xmark" style="font-size: 13px; margin: 10px; color: white; background: red; border-radius: 50%; padding: 5px 7px 5px 8px;"></i>
-              <label style="color: red; cursor: auto !important;">${array[i].answers[j]}</label>
             </div>
             
             `;
@@ -891,7 +902,7 @@ function showAllQuestionsWithStudentAnswers(array){
             divForAnswers.innerHTML+=`
           
             <div class="answer" style=" cursor: auto;">
-              <label style=" cursor: auto !important;">${array[i].answers[j]}</label>
+              <label style=" cursor: auto !important;">${escapeHtml(array[i].answers[j])}</label>
             </div>
             
             `;
@@ -914,10 +925,10 @@ function showAllQuestionsWithStudentAnswers(array){
           <div class="quiz-area" dir="auto">
             <img src="${array[i].titleImage}" class="questionImg" style="width: 100%; display: ${array[i].titleImage==""?"none":"block"};">
             <bdi class="theQuestion" dir="auto">
-            ${array[i].title}
+            ${escapeHtml(array[i].title)}
             </bdi>
           </div>
-    
+         
           <form class="answers-area answers-area-${i+1}" dir="auto">
             ${divForAnswers.innerHTML}
           </form>

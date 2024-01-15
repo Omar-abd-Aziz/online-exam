@@ -31,6 +31,7 @@
     <script src="./js cdn/momentCdn.js"></script>
     <!-- cdn moment js -->
 
+
   </head>
 
   <body>
@@ -747,6 +748,11 @@ if([...e.target.classList].includes("downloadAllResultsPdf")){
         <td style="text-align: center; border: 1px solid #dddddd; padding: 8px;">${el.phoneNumber}</td>
         <td style="text-align: center; border: 1px solid #dddddd; padding: 8px;">${el.result}</td>
         <td style="text-align: center; border: 1px solid #dddddd; padding: 8px;">
+          <a href="${window.location.origin}?exam=${examId}&studentAnswerId=${el.id}" target="_blank">
+            <button style="font-size: 18px; font-family:cairo; cursor:pointer; width: 120px; margin: 20px; border-radius: 10px; background: black; color: white; padding: 5px 0px; font-weight: 600; border: none; min-width: 120px;">اجابات الطالب</button>  
+          </a>
+        </td>
+        <td style="text-align: center; border: 1px solid #dddddd; padding: 8px;">
           <i title="حذف" class="fa-solid fa-trash removeStudentResult" data-exam-id="${examId}" data-id="${el.id}" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 6px 8px; cursor: pointer;"></i>
         </td>
       </tr>
@@ -757,12 +763,13 @@ if([...e.target.classList].includes("downloadAllResultsPdf")){
 
   Swal.fire({
     html:`
-      <table style="  font-family: arial, sans-serif;border-collapse: collapse;width: 100%;">
+      <table style="  font-family: arial, sans-serif;border-collapse: collapse;width: 100%; margin: 15px 10px;">
         <tbody>
           <tr>
             <td style="text-align: center; background: var(--main-bg);color: white; border: 1px solid #dddddd; padding: 8px;">Name</td>
             <td style="text-align: center; background: var(--main-bg);color: white; border: 1px solid #dddddd; padding: 8px;">PhoneNumber</td>
             <td style="text-align: center; background: var(--main-bg);color: white; border: 1px solid #dddddd; padding: 8px;">Result</td>
+            <td style="text-align: center; background: var(--main-bg);color: white; border: 1px solid #dddddd; padding: 8px;">اجابات الطالب</td>
             <td style="text-align: center; background: var(--main-bg);color: white; border: 1px solid #dddddd; padding: 8px;">edit</td>
           </tr>
           ${div.innerHTML}
@@ -772,7 +779,8 @@ if([...e.target.classList].includes("downloadAllResultsPdf")){
       <button class="printPage">Print</button>
     `,
     width: "100%",
-    showConfirmButton: false
+    showConfirmButton: false,
+    showCloseButton: true
   });
 
   // var doc = new jsPDF();
@@ -839,7 +847,26 @@ if([...e.target.classList].includes("examResults")){
         let querySnapshot = await getDocs(q);
         let cityList = querySnapshot.docs.map(doc => doc.data());
 
-        Swal.fire(`${cityList[0].userName+"<br>"+cityList[0].result}`,"","success");
+        if(cityList.length<1){
+          Swal.fire("لا يوجد بيانات لهذا الرقم","","error")
+        } else{
+          Swal.fire({
+            title: `${cityList[0].userName+"<br>"+cityList[0].result}`,
+            icon: 'success',
+            showCloseButton: true,
+            showConfirmButton: false,
+            showCancelButton: false,
+            html: `
+            
+            <a href="${window.location.origin}?exam=${examId}&studentAnswerId=${cityList[0].id}">
+              <button style="font-size: 18px; font-family:cairo; cursor:pointer; width: 120px; margin: 20px; border-radius: 10px; background: black; color: white; padding: 5px 0px; font-weight: 600; border: none; min-width: 120px;">اجابات الطالب</button>  
+            </a>
+            
+            `,
+          });
+
+        }
+
 
       }
 

@@ -1,4 +1,4 @@
-import {docName, initializeApp,firebaseConfig ,getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt,endAt } from '../firebase.js';
+import {docName, initializeApp,firebaseConfig ,getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, updateDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt,endAt } from '../firebase.js';
 let docId = await localStorage.getItem(`${docName}`);
 firebase.initializeApp(firebaseConfig);
 const app = initializeApp(firebaseConfig);
@@ -26,6 +26,8 @@ let urlParams = new URLSearchParams(queryString);
 let exam = urlParams.get('exam');
 let editExam = urlParams.get('editExam');
 let studentAnswerId = urlParams.get('studentAnswerId');
+let examResult = urlParams.get('examResult');
+
 let examDATA;
 
 
@@ -155,8 +157,14 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
 
           
         } else {
-          Swal.fire(`برجاء التاكد من كتابة الاسم ورقم الهاتف بشكل صحيح`,"","error");
-        }
+
+          Swal.fire(`برجاء التاكد من كتابة الاسم ورقم الهاتف بشكل صحيح`,"","error").then(async e=>{
+            if(e.isConfirmed){
+              location.reload();
+            };
+          });
+
+        };
        
       };
     })
@@ -212,8 +220,12 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
                 (${index + 1})
               </h5>
               <span>
+                <i title="انشاء سوال باستخدام الذكاء الاصطناعي" class="fa-solid fa-wand-magic-sparkles ai-btn" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 7px 6px; cursor: pointer;"></i>
                 <i title="حذف" class="fa-solid fa-trash remove" data-question="${escapeHtml(JSON.stringify(question))}" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 6px 8px; cursor: pointer;"></i>
               </span>
+
+              
+             
             </div>
 
             <img src="${question.titleImage||""}" class="questionImg" style="width: 100%; display: ${question.titleImage==""?"none":"block"}; border-radius: 10px;">
@@ -315,6 +327,90 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
 
   }
 
+} else if (examResult!==null){
+
+
+  console.log(examResult)
+  
+
+  Swal.fire({
+    title: 'Please Wait!',
+    didOpen: () => {
+      Swal.showLoading()
+    }
+  });
+
+  let examId = examResult;
+  console.log(examId)
+
+  let q = query(collection(db,"exams",`${examId}`,`results`));
+  let snapshot = await getCountFromServer(q);
+
+  Swal.fire({
+      title: '',
+      html:`
+
+      <bdi style="margin: 5px;font-size: 24px;font-family: cairo;font-weight: bold;">
+      نتايج الطلاب: ${snapshot.data().count} نتيجة
+      </bdi>
+
+      <hr>
+
+      <bdi style="margin: 5px;font-size: 24px;font-family: cairo;font-weight: bold;">
+      بحث في النتائج:
+      </bdi>
+
+      <div class="" style=" border-radius: 6px; border: none; padding: 5px;">
+        <select dir="rtl" class="SearchFiledForResult" style="margin: 5px 0px;font-size: 20px;background: white;color: black;padding: 5px;border: 2px solid black;border-radius: 6px;text-align: start;font-weight: bold;">
+          <!--<option value="userName">اسم الطالب</option>-->
+          <option value="phoneNumber"> رقم هاتف الطالب </option>
+        </select>
+        <input type="text" dir="auto" placeholder="Search text" class="addOrderInput SearchValueForResult" style="max-width: 150px; font-size: 20px;">
+      </div>
+
+      `,
+      confirmButtonText:
+      `<b>Search <i class="fa-solid fa-magnifying-glass"></i></b>`,
+  }).then(async el=>{
+    if(el.isConfirmed){
+      let SearchFiledForResult = document.querySelector(".SearchFiledForResult").value.trim();
+      let SearchValueForResult = document.querySelector(".SearchValueForResult").value.trim();
+
+
+      if(SearchFiledForResult!==""&&SearchValueForResult!==""){
+        let q = query(collection(db,"exams",`${examId}`,`results`),where(`${SearchFiledForResult}`,"==",`${SearchValueForResult}`));
+        let querySnapshot = await getDocs(q);
+        let cityList = querySnapshot.docs.map(doc => doc.data());
+
+        if(cityList.length<1){
+          Swal.fire("لا يوجد بيانات لهذا الرقم","","error")
+        } else{
+          Swal.fire({
+            title: `${cityList[0].userName+"<br>"+cityList[0].result}`,
+            icon: 'success',
+            showCloseButton: true,
+            showConfirmButton: false,
+            showCancelButton: false,
+            html: `
+            
+            <a href="${window.location.origin}?exam=${examId}&studentAnswerId=${cityList[0].id}">
+              <button style="font-size: 18px; font-family:cairo; cursor:pointer; width: 120px; margin: 20px; border-radius: 10px; background: black; color: white; padding: 5px 0px; font-weight: 600; border: none; min-width: 120px;">اجابات الطالب</button>  
+            </a>
+            
+            `,
+          });
+
+        }
+
+
+      }
+
+
+    }
+  })
+
+
+
 }
 
 
@@ -377,8 +473,7 @@ document.querySelector(".saveQuiz").addEventListener("click",async()=>{
   // let filteredData2 = extractedData.filter(item => item.title.trim()!=="");
   // console.log(filteredData2);
   
-  await setDoc(doc(db,"exams",`${examDATA[0].id}`),{
-    ...examDATA[0],
+  await updateDoc(doc(db,"exams",`${examDATA[0].id}`),{
     theExam: filteredData,
   }).then(el=>{
     Swal.fire("Done","","success");
@@ -416,6 +511,7 @@ document.querySelector(".addNewQuestion").addEventListener("click",()=>{
             (${i + 1})
           </h5>
           <span>
+            <i title="انشاء سوال باستخدام الذكاء الاصطناعي" class="fa-solid fa-wand-magic-sparkles ai-btn" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 7px 6px; cursor: pointer;"></i>
             <i title="حذف" class="fa-solid fa-trash remove" data-question="" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 6px 8px; cursor: pointer;"></i>
           </span>
         </div>
@@ -520,7 +616,69 @@ function getImgLinkFromInput(imgQuestion){
 
 window.onclick=async(e)=>{
   
+  if([...e.target.classList].includes("ai-btn")){
+    let QuestionDiv = e.target.parentNode.parentNode.parentNode.parentNode;
 
+
+    const { value: QuestionSubject } = await Swal.fire({
+      title: "Enter Question Subject",
+      input: "text",
+      inputLabel: "",
+      inputPlaceholder: "Subject"
+    });
+    if (QuestionSubject) {
+
+
+
+      Swal.fire({
+        title: 'Please Wait!',
+        didOpen: () => {
+          Swal.showLoading()
+        }
+      });
+
+
+      generate(QuestionSubject).then(obj=>{
+     
+        let parsedObject = JSON.parse(obj);
+        console.log(parsedObject)
+
+        QuestionDiv.querySelector(".questionTitle").value=parsedObject.question;
+        
+        if (parsedObject.answer == "a"){
+          QuestionDiv.querySelector(".questionRightAnswer").value=parsedObject.choices.a;
+        } else if (parsedObject.answer == "b"){
+          QuestionDiv.querySelector(".questionRightAnswer").value=parsedObject.choices.b;
+        } else if (parsedObject.answer == "c"){
+          QuestionDiv.querySelector(".questionRightAnswer").value=parsedObject.choices.c;
+        } else if (parsedObject.answer == "d"){
+          QuestionDiv.querySelector(".questionRightAnswer").value=parsedObject.choices.d;
+        }
+        
+        let questionChouses = [...QuestionDiv.querySelectorAll(".questionChouse")]
+        questionChouses[0].value=parsedObject.choices.d
+        questionChouses[1].value=parsedObject.choices.c
+        questionChouses[2].value=parsedObject.choices.a
+        questionChouses[3].value=parsedObject.choices.b
+
+
+
+        Swal.fire({
+          title: "Done",
+          text: "",
+          icon: "success"
+        });
+
+
+        console.log(parsedObject.question)
+      })
+    }
+
+
+
+    // QuestionDiv.querySelector(".questionImg").questionTitle
+
+  }
 
   
   if([...e.target.classList].includes("addImgToQuestion")){
@@ -854,7 +1012,7 @@ function showAllQuestionsWithStudentAnswers(array){
             
             <div class="answer" style="background: #00800024; cursor: auto;">
               <label style="color: green; cursor: auto !important;">${escapeHtml(array[i].answers[j])}</label>
-              <i class="fa-solid fa-check" style="font-size: 13px; margin: 10px; color: white; background: green; border-radius: 50%; padding: 5px 5px;"></i>
+              <i class="fa-solid fa-check trueFalseIcon" style="font-size: 13px; margin: 10px; color: white; background: green; border-radius: 50%; padding: 5px 5px;"></i>
             </div>
             
             `;
@@ -881,7 +1039,7 @@ function showAllQuestionsWithStudentAnswers(array){
             
             <div class="answer" style="background: #00800024; cursor: auto;">
               <label style="color: green; cursor: auto !important;">${escapeHtml(array[i].answers[j])}</label>
-              <i class="fa-solid fa-check" style="font-size: 13px; margin: 10px; color: white; background: green; border-radius: 50%; padding: 5px 5px;"></i>
+              <i class="fa-solid fa-check trueFalseIcon" style="font-size: 13px; margin: 10px; color: white; background: green; border-radius: 50%; padding: 5px 5px;"></i>
             </div>
             
             `;
@@ -892,7 +1050,7 @@ function showAllQuestionsWithStudentAnswers(array){
           
             <div class="answer" style="background: #80000024; cursor: auto;">
               <label style="color: red; cursor: auto !important;">${escapeHtml(array[i].answers[j])}</label>
-              <i class="fa-solid fa-xmark" style="font-size: 13px; margin: 10px; color: white; background: red; border-radius: 50%; padding: 5px 7px 5px 8px;"></i>
+              <i class="fa-solid fa-xmark trueFalseIcon" style="font-size: 13px; margin: 10px; color: white; background: red; border-radius: 50%; padding: 5px 7px 5px 8px;"></i>
             </div>
             
             `;
@@ -1014,3 +1172,76 @@ function timer(hours) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*////////////// ai */
+
+let API_URL = "https://api.openai.com/v1/chat/completions";
+let API_KEY = "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";
+
+
+async function generate(text) {
+
+  try {
+    // Fetch the response from the OpenAI API with the signal from AbortController
+    let response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: `give me a object has question and chouses and true answer about ${text} like
+
+        when i need question about math you give me object question like this
+        
+        example
+
+        {
+          "question": "What is the value of 2 + 2?",
+          "choices": {
+            "a": 3,
+            "b": 4,
+            "c": 5,
+            "d": 6
+          },
+          "answer": "b"
+        }
+
+        give this to me only no more text,
+
+        make the answer random not chouse a only make it random a or b or c or d,
+
+        if the object has arabic word or any language make the object choices a,b,c,d not like ا ب ج د
+
+        
+        ` }],
+      }),
+    });
+
+    let data = await response.json();
+    // console.log(data.choices[0].message.content)
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error("Error:", error);
+  };
+};
+
+
+// generate("question about html").then(obj=>{
+//   console.log(obj)
+// })
+/*/////////////// ai */

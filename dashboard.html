@@ -180,7 +180,7 @@
 
 /* start import from firebase */
 
-  import {docName, initializeApp,firebaseConfig ,getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt,endAt } from './firebase.js';
+  import {docName, initializeApp,firebaseConfig ,getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, updateDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt,endAt } from './firebase.js';
 
   firebase.initializeApp(firebaseConfig);
   const app = initializeApp(firebaseConfig);
@@ -348,8 +348,7 @@ personImgInput.addEventListener("change",()=>{
 
     console.log(mainPersonData.id)
 
-    setDoc(doc(db, "accounts", `${mainPersonData.id}`), {
-      ...mainPersonData,
+    updateDoc(doc(db, "accounts", `${mainPersonData.id}`), {
       personImg: url,
     }).then(e=>{
       Swal.fire("Done","","success")
@@ -583,8 +582,7 @@ if([...e.target.classList].includes("Result-Hidden")){
 
       let x = (examData.isHidden==true?false:true);
 
-      setDoc(doc(db,"exams",examId),{
-        ...examData,
+      updateDoc(doc(db,"exams",examId),{
         isHidden: x,
       }).then(e=>{
 
@@ -672,8 +670,7 @@ confirmButtonText: 'Yes'
 
     let x = (examData.trueAnswersShowisHidden==true?false:true);
 
-    setDoc(doc(db,"exams",examId),{
-      ...examData,
+    updateDoc(doc(db,"exams",examId),{
       trueAnswersShowisHidden: x,
     }).then(e=>{
 
@@ -815,6 +812,9 @@ if([...e.target.classList].includes("examResults")){
       <bdi style="margin: 5px;font-size: 24px;font-family: cairo;font-weight: bold;">
       نتايج الطلاب: ${snapshot.data().count} نتيجة
       <i class="fa-solid fa-file-pdf downloadAllResultsPdf" data-id="${examId}" style="color: darkred; cursor: pointer; margin: 5px 10px;"></i>
+      <a href="${location.origin+"/index.html?examResult="+examId}">
+        <i class="fa-solid fa-link AllResultsLinkForStudents" title="لينك الاستعلام عن النتيجة للطلاب" data-id="${examId}" style="color: black; cursor: pointer; margin: 5px 10px;"></i>
+      </a>
       </bdi>
 
       
@@ -1118,8 +1118,7 @@ async function editExam(examData){
             if(examName.trim()!==''&&dateStart.trim()!==''&&dateEnd.trim()!==''&&examTime.trim()!==''){
 
 
-                setDoc(doc(db,"exams",id), {
-                  ...examData,
+                updateDoc(doc(db,"exams",id), {
                   examName: examName,
                   dateStart: dateStart,
                   dateEnd: dateEnd,

@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
     <link rel="stylesheet" href="./exam/main.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+
+  
   </head>
   <body>
 
@@ -25,6 +27,12 @@
             <div style="display: flex; justify-content: center;">
               <button class="saveQuiz">Save</button>
               <button class="addNewQuestion">Add question</button>
+              <!-- <button class="addQuestions">Add Questions</button> -->
+              
+              <!-- <button  title="انشاء سوال باستخدام الذكاء الاصطناعي" class="addApiKey">
+                add Api Key
+              </button> -->
+              
             </div>
         </fieldset>
       </div>
@@ -84,5 +92,12 @@
 
 
   <script src="./exam/cdn/swal.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "@google/generative-ai": "https://esm.run/@google/generative-ai"
+      }
+    }
+  </script>
   <script type="module" src="./exam/main.js"></script>
 </html>

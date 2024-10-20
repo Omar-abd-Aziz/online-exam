@@ -207,6 +207,22 @@ input[type="radio" i] {
 }
 
 
+.addQuestions ,.addApiKey{
+  font-size: 18px;
+  font-family: cairo;
+  cursor: pointer;
+  padding: 5px 10px !important;
+  margin: 20px;
+  border-radius: 10px;
+  background: #0a1951;
+  color: white;
+  padding: 5px 0px;
+  font-weight: 600;
+  border: none;
+  min-width: 120px;
+}
+
+
 .answer{
   display: flex;
   align-items: center;

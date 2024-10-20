@@ -193,6 +193,12 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
   examDATA = cityList
   
   let data= examDATA[0].theExam;
+
+
+
+
+
+  
   console.log(data)
   if(examDATA[0].AdminId==`${docId}`){
 
@@ -614,8 +620,183 @@ function getImgLinkFromInput(imgQuestion){
 }
 
 
-window.onclick=async(e)=>{
+window.addEventListener("click",async (e)=>{
+
   
+  if([...e.target.classList].includes("addApiKey")){
+
+    let oldApiKey="";
+
+    if (examDATA[0].apiKey!==undefined){
+      oldApiKey=examDATA[0].apiKey;
+    };
+
+
+    let { value: apiKey } = await Swal.fire({
+      input: "text",
+      inputValue: oldApiKey,
+      html: "<h2 style='padding: 0;margin: 0;'>Api Key</h2><a href='https://platform.openai.com/api-keys'>get Api Key</a>",
+      inputPlaceholder: "Type your Api Key here...",
+      inputAttributes: {
+        "aria-label": "Type your Api Key here"
+      },
+      showCancelButton: true
+    });
+    if (apiKey) {
+
+
+      Swal.fire({
+        title: 'Please Wait!',
+        didOpen: () => {
+          Swal.showLoading()
+        }
+      });
+
+      await updateDoc(doc(db,"exams",`${examDATA[0].id}`),{
+        apiKey: apiKey,
+      }).then(el=>{
+        Swal.fire("Done","","success");
+        examDATA[0].apiKey=apiKey;
+      })
+
+
+
+
+    };
+
+  };
+
+
+
+  if([...e.target.classList].includes("addQuestions")){
+
+
+    let { value: text } = await Swal.fire({
+      input: "textarea",
+      inputLabel: "Message",
+      inputPlaceholder: "Type your array of object here...",
+      inputAttributes: {
+        "aria-label": "Type your questions as object here"
+      },
+      showCancelButton: true
+    });
+    if (text) {
+
+      console.log(text)
+
+
+
+      let trainingAiText = `make this  questions ${text}  as array of objects and make titleImage: "" like  [
+        {
+            "right_answer": "Feedback",
+            "answers": [
+                "Actuator",
+                "Feedback",
+                "Fog",
+                "Process"
+            ],
+            "titleImage": "",
+            "title": "Used by IoT device to provide realtime output information to its controller"
+        },
+        {
+            "title": "Converts physical property into electrical signal",
+            "titleImage": "",
+            "right_answer": "Sensor",
+            "answers": [
+                "Controller",
+                "Sensor",
+                "Actuator",
+                "LED"
+            ]
+      }]
+
+      give me the array of objects direct and the array have the same number of questions i give you
+
+
+      `;
+
+      
+      Swal.fire({
+        title: 'Please Wait!',
+        didOpen: () => {
+          Swal.showLoading()
+        }
+      });
+
+
+
+      await generateQuestions(trainingAiText).then(async (e)=>{
+
+        console.log(e);
+
+        let questionTitles = document.getElementsByClassName('questionTitle');
+        let questionImages = document.getElementsByClassName('questionImg');
+        let rightAnswers = document.getElementsByClassName('questionRightAnswer');
+        let answerInputs = document.getElementsByClassName('questionChouse');
+      
+        let extractedData = [];
+      
+        for (let i = 0; i < questionTitles.length; i++) {
+          let title = questionTitles[i].value.trim();
+          let rightAnswer = rightAnswers[i].value.trim();
+          let titleImage = (questionImages[i].style.display!=="none")?questionImages[i].src:"";
+          
+          let answers = [];
+          for (let j = 0; j < 6; j++) {
+            answers.push(answerInputs[i * 6 + j].value.trim());
+          }
+      
+          let filteredAnswers= answers.filter(item => item.trim()!=="");
+      
+          let questionData = {
+            title: title,
+            titleImage: titleImage,
+            right_answer: rightAnswer,
+            answers: filteredAnswers
+          };
+      
+          extractedData.push(questionData);
+        };
+      
+        let filteredData=[];
+        extractedData.forEach(e=>{
+          if(e.titleImage==""&&e.title==""){
+            
+          }else{
+            filteredData.push(e);
+          }
+        });
+      
+  
+        let newArrayOfQuestions = [...filteredData,...JSON.parse(e)];
+  
+  
+  
+  
+        await updateDoc(doc(db,"exams",`${examDATA[0].id}`),{
+          theExam: newArrayOfQuestions,
+        }).then(el=>{
+          Swal.fire("Done","","success");
+          window.location.reload();
+        })
+  
+
+        
+      })
+
+
+
+
+
+
+   
+
+
+    }
+
+  }
+
+
   if([...e.target.classList].includes("ai-btn")){
     let QuestionDiv = e.target.parentNode.parentNode.parentNode.parentNode;
 
@@ -640,7 +821,7 @@ window.onclick=async(e)=>{
 
       generate(QuestionSubject).then(obj=>{
      
-        let parsedObject = JSON.parse(obj);
+        let parsedObject = obj
         console.log(parsedObject)
 
         QuestionDiv.querySelector(".questionTitle").value=parsedObject.question;
@@ -714,7 +895,9 @@ window.onclick=async(e)=>{
 
   };
 
-}
+})
+
+
 
 
 
@@ -1187,61 +1370,198 @@ function timer(hours) {
 
 
 /*////////////// ai */
+// async function generateQuestions(trainingAiText) {
 
-let API_URL = "https://api.openai.com/v1/chat/completions";
-let API_KEY = "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";
+  
+//   let API_URL = "https://api.openai.com/v1/chat/completions";
+//   let API_KEY = examDATA[0].apiKey;
+  
+//     try {
+//       // Fetch the response from the OpenAI API with the signal from AbortController
+//       let response = await fetch(API_URL, {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: `Bearer ${API_KEY}`,
+//         },
+//         body: JSON.stringify({
+//           model: "gpt-3.5-turbo",
+//           messages: [{ role: "user", content: `${trainingAiText}` }],
+//         }),
+//       });
+  
+//       let data = await response.json();
+//       // console.log(data.choices[0].message.content)
+//       return data.choices[0].message.content;
+//     } catch (error) {
+//       console.error("Error:", error);
+//     };
+// };
+
+
+
+
+
+
+
+
+
+
 
 
 async function generate(text) {
-
   try {
-    // Fetch the response from the OpenAI API with the signal from AbortController
-    let response = await fetch(API_URL, {
-      method: "POST",
+    const options = {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'insomnia/10.1.0',
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: `give me a object has question and chouses and true answer about ${text} like
-
-        when i need question about math you give me object question like this
-        
-        example
-
-        {
-          "question": "What is the value of 2 + 2?",
-          "choices": {
-            "a": 3,
-            "b": 4,
-            "c": 5,
-            "d": 6
-          },
-          "answer": "b"
-        }
-
-        give this to me only no more text,
-
-        make the answer random not chouse a only make it random a or b or c or d,
-
-        if the object has arabic word or any language make the object choices a,b,c,d not like ا ب ج د
-
-        
-        ` }],
+        mode: 'no-cors',
+        message: `Give me an object that has a question, choices, and a true answer about ${text}. Like this example:
+  
+          {
+            "question": "What is the value of 2 + 2?",
+            "choices": {
+              "a": 3,
+              "b": 4,
+              "c": 5,
+              "d": 6
+            },
+            "answer": "b"
+          }
+  
+          Provide only this object, with no extra text.
+  
+          Make the answer random, not just 'a'; it should be random between 'a', 'b', 'c', or 'd'.
+  
+          If the object has Arabic or any other language words, make the object choices 'a', 'b', 'c', 'd', not like 'ا', 'ب', 'ج', 'د'.
+          `
       }),
-    });
-
+    };
+    
+    const response = await fetch('https://aiiiiiiiii.onrender.com/generate', options);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     let data = await response.json();
-    // console.log(data.choices[0].message.content)
-    return data.choices[0].message.content;
+    console.log(data.response);
+    data=data.response;
+    data = data.replace(/`/g, '');
+    data = data.replace(/`/g, '');
+    data = data.replace(/`/g, '');
+
+
+    data=JSON.parse(data);
+    console.log(data);
+
+    // Return the generated question object
+    return data
+    
   } catch (error) {
-    console.error("Error:", error);
-  };
-};
+    console.error("Error fetching the question object:", error);
+    // Return or throw the error if needed
+    throw error; // Optionally rethrow or return null based on your use case
+  }
+}
+
+
+
+
+// async function generate(text) {
+
+
+  
+// let API_URL = "https://api.openai.com/v1/chat/completions";
+// let API_KEY = examDATA[0].apiKey;
+
+//   try {
+//     const options = {
+//       method: 'POST',
+//       headers: {'Content-Type': 'application/json', 'User-Agent': 'insomnia/10.1.0'},
+//       body: JSON.stringify({
+//         messages: [{ role: "user", content: `give me a object has question and chouses and true answer about ${text} like
+  
+//         when i need question about math you give me object question like this
+        
+//         example
+  
+//         {
+//           "question": "What is the value of 2 + 2?",
+//           "choices": {
+//             "a": 3,
+//             "b": 4,
+//             "c": 5,
+//             "d": 6
+//           },
+//           "answer": "b"
+//         }
+  
+//         give this to me only no more text,
+  
+//         make the answer random not chouse a only make it random a or b or c or d,
+  
+//         if the object has arabic word or any language make the object choices a,b,c,d not like ا ب ج د
+  
+        
+//         ` }],
+//       }),
+//     };
+    
+//     fetch('https://aiiiiiiiii.onrender.com/generate', options)
+//       .then(response => response.json())
+//       .then(response => {
+//         console.log(response)
+//       })
+//       .catch(err => console.error(err));
+
+
+
+//     let data = await response.json();
+//     // console.log(data.choices[0].message.content)
+//     return data.choices[0].message.content;
+//   } catch (error) {
+//     console.error("Error:", error);
+//   };
+// };
 
 
 // generate("question about html").then(obj=>{
 //   console.log(obj)
 // })
 /*/////////////// ai */
+
+
+
+// const prompt = "Write a short story about a robot who dreams of becoming a musician.";
+// const API_KEY = "AIzaSyByqKeSvCFfDLSSR3cqwFYSrdaofbtCCIU";  // Replace with your actual API key
+
+// const requestOptions = {
+//     method: 'POST',
+//     headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': `Bearer ${API_KEY}`,
+//         'Cors': `Access-Control-Allow-Origin`
+//     },
+//     body: JSON.stringify({
+//         prompt: prompt,
+//         // Adjust the parameters as needed by the API
+//     })
+// };
+
+// try {
+//     const response = await fetch('https://api.google.com/generative-model-endpoint', requestOptions);
+//     const data = await response.json();
+//     console.log(data.generatedText);
+// } catch (error) {
+//     console.error('Error:', error);
+// }
+
+
+
+// Import the GoogleGenerativeAI class
+// Import the GoogleGenerativeAI class
+

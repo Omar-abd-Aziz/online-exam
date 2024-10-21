@@ -16,8 +16,8 @@
             <div class="login-form">
                 <div class="sign-in-htm">
                     <div class="group">
-                        <label for="user" class="label">Username</label>
-                        <input id="user" type="text" class="input username-in" autocomplete="off">
+                        <label for="user" class="label">Email</label>
+                        <input id="user" type="text" class="input username-in email-in" autocomplete="off">
                     </div>
                     <div class="group">
                         <label for="pass" class="label">Password</label>
@@ -30,9 +30,9 @@
                     <p class="ForgotPassword" style="margin: 25px; color: #c2c2c2;cursor: pointer;text-align: center;">Forgot Password</p>
 
                     <div class="hr"></div>
-                    <div class="foot-lnk">
+                    <!-- <div class="foot-lnk">
                         <a href="https://www.facebook.com/profile.php?id=100013753383562">Made With <span style="color: #1161ee;">&#10084;</span> By Omar Ehalwany</a>
-                    </div>
+                    </div> -->
                 </div>
                 <div class="sign-up-htm">
                     <div class="group">
@@ -47,9 +47,9 @@
                         <label for="pass" class="label">email</label>
                         <input id="pass" type="text" class="input email-up" autocomplete="off">
                     </div>
-                    <div class="group" style="display: none;">
+                    <div class="group">
                         <label for="pass" class="label">Admin Code</label>
-                        <input id="pass" value="951" type="text" class="input AdminCode-up" autocomplete="off">
+                        <input id="pass" type="text" class="input AdminCode-up" autocomplete="off">
                     </div>
                     <div class="group">
                         <input type="submit" class="button btn-sign-up" value="Sign Up">
@@ -64,8 +64,9 @@
     </div>
     <!-- end -->
 </body>
-<script src="../js cdn/swal.js"></script>
+<script src="../js cdn/swalCdn.js"></script>
 <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-storage.js"></script>
 <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-database.js"></script>
 <script src="login.js" type="module"></script>

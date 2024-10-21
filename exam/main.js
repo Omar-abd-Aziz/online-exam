@@ -1,9 +1,11 @@
-import {docName, initializeApp,firebaseConfig ,getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, updateDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt,endAt } from '../firebase.js';
+import {docName, initializeApp,firebaseConfig, onAuthStateChanged, getAuth ,getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, updateDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt,endAt } from '../firebase.js';
 let docId = await localStorage.getItem(`${docName}`);
 firebase.initializeApp(firebaseConfig);
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+let auth = getAuth(app);
 
+let mainPersonData=[];
 const storage = firebase.storage();
 /**/
 
@@ -42,11 +44,11 @@ function checkQuizAvailability(dateStart,dateEnd) {
 
 
 if(exam!==null&&editExam==null&&studentAnswerId==null){
+  // start exam
 
+  console.log(exam)
 
-
-
-  let q = query(collection(db, "exams"),where("id","==",`${exam}`), limit(X||1));
+  let q = query(collection(db, "examsWithoutAnswers"),where("id","==",`${exam}`), limit(X||1));
   let querySnapshot = await getDocs(q);
   let cityList = querySnapshot.docs.map(doc => doc.data());
   examDATA = cityList;
@@ -120,7 +122,7 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
           });
 
 
-          let q = query(collection(db,"exams",`${examDATA[0].id}`,`results`),where("phoneNumber","==",`${phoneNumber}`), limit(X||1));
+          let q = query(collection(db,"examsWithoutAnswers",`${examDATA[0].id}`,`results`),where("phoneNumber","==",`${phoneNumber}`), limit(X||1));
           let snapshot = await getCountFromServer(q);
           
           // let querySnapshot = await getDocs(q);
@@ -184,87 +186,111 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
 } else if (exam==null&&studentAnswerId==null&&editExam!==null&&docId!==null){
   
 
-
-
-
-  let q = query(collection(db, "exams"),where("id","==",`${editExam}`), limit(X||1));
-  let querySnapshot = await getDocs(q);
-  let cityList = querySnapshot.docs.map(doc => doc.data());
-  examDATA = cityList
   
-  let data= examDATA[0].theExam;
+  onAuthStateChanged(auth,async (user) => {
+    if (user) {
+
+
+    // document.querySelector('.profile-btn').dataset.personid=docId;
+    // mainPersonData=await getUserDataWithId(docId);
+    mainPersonData= JSON.parse(localStorage.getItem(`${docName}_personData`));
+
+    if(mainPersonData.isAdmin==false){
+      location.href="./login/login.html"
+    };
+
+
+
+    
+    let q = query(collection(db, "exams"),where("AdminId","==",`${mainPersonData.uid}`),where("id","==",`${editExam}`), limit(X||1));
+    let querySnapshot = await getDocs(q);
+    let cityList = querySnapshot.docs.map(doc => doc.data());
+    examDATA = cityList
+    
+    let data= examDATA[0].theExam;
 
 
 
 
 
-  
-  console.log(data)
-  if(examDATA[0].AdminId==`${docId}`){
+    
+    console.log(data)
+    if(examDATA[0].AdminId==`${mainPersonData.uid}`){
 
-    document.querySelector(".CreateQuizDiv").style.display="block";
-    document.querySelector(".quiz-app").style.display="none";
+      document.querySelector(".CreateQuizDiv").style.display="block";
+      document.querySelector(".quiz-app").style.display="none";
 
-    data.forEach(function show(question, index) {
-  
-        let div=document.createElement("div");
-  
-        for(let i = 0; i<6; i++){
-          div.innerHTML+=`
-            <input dir="auto" class="questionChouse" type="text" name="questions[${index}][answers][${i}]" value="${question.answers[i]!==undefined?`${escapeHtml(question.answers[i])}`:``}">
-          `;
-        }
-  
-  
-        let questionDiv = `
-  
-        <div>
+      data.forEach(function show(question, index) {
+    
+          let div=document.createElement("div");
+    
+          for(let i = 0; i<6; i++){
+            div.innerHTML+=`
+              <input dir="auto" class="questionChouse" type="text" name="questions[${index}][answers][${i}]" value="${question.answers[i]!==undefined?`${escapeHtml(question.answers[i])}`:``}">
+            `;
+          }
+    
+    
+          let questionDiv = `
+    
           <div>
-  
-            <div style="display: flex; justify-content: space-between;">
-              <h5 class="questionNumber" style="margin: 20px 0px; font-size: 18px">
-                (${index + 1})
-              </h5>
-              <span>
-                <i title="انشاء سوال باستخدام الذكاء الاصطناعي" class="fa-solid fa-wand-magic-sparkles ai-btn" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 7px 6px; cursor: pointer;"></i>
-                <i title="حذف" class="fa-solid fa-trash remove" data-question="${escapeHtml(JSON.stringify(question))}" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 6px 8px; cursor: pointer;"></i>
-              </span>
+            <div>
+    
+              <div style="display: flex; justify-content: space-between;">
+                <h5 class="questionNumber" style="margin: 20px 0px; font-size: 18px">
+                  (${index + 1})
+                </h5>
+                <span>
+                  <i title="انشاء سوال باستخدام الذكاء الاصطناعي" class="fa-solid fa-wand-magic-sparkles ai-btn" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 7px 6px; cursor: pointer;"></i>
+                  <i title="حذف" class="fa-solid fa-trash remove" data-question="${escapeHtml(JSON.stringify(question))}" style="font-size: 20px; color: white; background: darkred; border-radius: 50%; padding: 6px 8px; cursor: pointer;"></i>
+                </span>
 
+                
               
-             
+              </div>
+
+              <img src="${question.titleImage||""}" class="questionImg" style="width: 100%; display: ${question.titleImage==""?"none":"block"}; border-radius: 10px;">
+    
+              <label for="questions[${index}][title]">Question:</label>
+
+              <i class="fa-solid fa-image addImgToQuestion" id="question_${index}" style="color: darkgreen; cursor: pointer; margin: 5px 10px;"></i>
+
+              <input dir="auto" class="questionTitle" type="text" id="questions[${index}][title]" name="questions[${index}][title]" value="${escapeHtml(question.title)}">
+              <br>
+              <label for="questions[${index}][title]">Answer:</label>
+              <input dir="auto" class="questionRightAnswer" type="text" name="questions[${index}][right_answer]" value="${escapeHtml(question.right_answer)}">
+              
             </div>
-
-            <img src="${question.titleImage||""}" class="questionImg" style="width: 100%; display: ${question.titleImage==""?"none":"block"}; border-radius: 10px;">
-  
-            <label for="questions[${index}][title]">Question:</label>
-
-            <i class="fa-solid fa-image addImgToQuestion" id="question_${index}" style="color: darkgreen; cursor: pointer; margin: 5px 10px;"></i>
-
-            <input dir="auto" class="questionTitle" type="text" id="questions[${index}][title]" name="questions[${index}][title]" value="${escapeHtml(question.title)}">
-            <br>
-            <label for="questions[${index}][title]">Answer:</label>
-            <input dir="auto" class="questionRightAnswer" type="text" name="questions[${index}][right_answer]" value="${escapeHtml(question.right_answer)}">
             
+            <label style="margin: 10px 0px;">Chouses:</label>
+            <div style="display: flex; justify-content: center;">
+              <div>
+                ${div.innerHTML}
+              </div>
+            </div>
+            <hr>
           </div>
           
-          <label style="margin: 10px 0px;">Chouses:</label>
-          <div style="display: flex; justify-content: center;">
-            <div>
-              ${div.innerHTML}
-            </div>
-          </div>
-          <hr>
-        </div>
         
-      
-        `;
-  
-        document.querySelector("#questions").innerHTML+=questionDiv;
-    });
+          `;
+    
+          document.querySelector("#questions").innerHTML+=questionDiv;
+      });
 
-  } else{
-    Swal.fire("عفولا لا يمكنك تعديل هذا الاختبار لانك لست مالكه","","error")
-  }
+    } else{
+      Swal.fire("عفولا لا يمكنك تعديل هذا الاختبار لانك لست مالكه","","error")
+    }
+
+
+
+
+        
+    } else {
+      location.href="./login/login.html"
+    }
+  });
+
+
 
 
 
@@ -283,7 +309,7 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
 
 
 
-  let q = query(collection(db,"exams",`${exam}`,`results`),where("id","==",`${studentAnswerId}`), limit(X||1));
+  let q = query(collection(db,"examsWithoutAnswers",`${exam}`,`results`),where("id","==",`${studentAnswerId}`), limit(X||1));
   let snapshot = await getCountFromServer(q);
   console.log(snapshot.data().count)
 
@@ -302,8 +328,12 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
     cityList = querySnapshot.docs.map(doc => doc.data());
     examDATA = cityList;
 
-    console.log(examDATA);
-    console.log(examDATAwithStudentAnswer);
+    console.log(examDATA[0].theExam);
+    console.log(examDATAwithStudentAnswer[0].Questions);
+
+    for(let i=0; i<examDATA[0].theExam.length; i++){
+      examDATAwithStudentAnswer[0].Questions[i].right_answer=examDATA[0].theExam[i].right_answer;
+    }
 
 
     document.querySelector(".quiz-app").style.display="block";
@@ -349,7 +379,7 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
   let examId = examResult;
   console.log(examId)
 
-  let q = query(collection(db,"exams",`${examId}`,`results`));
+  let q = query(collection(db,"examsWithoutAnswers",`${examId}`,`results`));
   let snapshot = await getCountFromServer(q);
 
   Swal.fire({
@@ -357,7 +387,7 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
       html:`
 
       <bdi style="margin: 5px;font-size: 24px;font-family: cairo;font-weight: bold;">
-      نتايج الطلاب: ${snapshot.data().count} نتيجة
+      نتائج الطلاب: ${snapshot.data().count} نتيجة
       </bdi>
 
       <hr>
@@ -384,7 +414,7 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
 
 
       if(SearchFiledForResult!==""&&SearchValueForResult!==""){
-        let q = query(collection(db,"exams",`${examId}`,`results`),where(`${SearchFiledForResult}`,"==",`${SearchValueForResult}`));
+        let q = query(collection(db,"examsWithoutAnswers",`${examId}`,`results`),where(`${SearchFiledForResult}`,"==",`${SearchValueForResult}`));
         let querySnapshot = await getDocs(q);
         let cityList = querySnapshot.docs.map(doc => doc.data());
 
@@ -393,7 +423,7 @@ if(exam!==null&&editExam==null&&studentAnswerId==null){
         } else{
           Swal.fire({
             title: `${cityList[0].userName+"<br>"+cityList[0].result}`,
-            icon: 'success',
+            icon: 'info',
             showCloseButton: true,
             showConfirmButton: false,
             showCancelButton: false,
@@ -474,15 +504,31 @@ document.querySelector(".saveQuiz").addEventListener("click",async()=>{
     }
   });
 
-  console.log(filteredData);
+ 
+
 
   // let filteredData2 = extractedData.filter(item => item.title.trim()!=="");
   // console.log(filteredData2);
   
   await updateDoc(doc(db,"exams",`${examDATA[0].id}`),{
     theExam: filteredData,
-  }).then(el=>{
-    Swal.fire("Done","","success");
+  }).then(async el=>{
+
+    filteredData.forEach(ee=>{
+      ee.right_answer=""
+    });
+
+
+    console.log(filteredData);
+
+
+    await updateDoc(doc(db,"examsWithoutAnswers",`${examDATA[0].id}`),{
+      theExam: filteredData,
+    }).then(el=>{
+      Swal.fire("Done","","success");
+    })
+
+
   })
 
 
@@ -979,17 +1025,32 @@ submitButton.addEventListener("click",async()=>{
         }
       });
 
+
+      console.log(exam);
+      let q = query(collection(db, "exams"),where("id","==",`${exam}`), limit(X||1));
+      let querySnapshot = await getDocs(q);
+      let cityList = querySnapshot.docs.map(doc => doc.data());
+      let examDATA = cityList;
+  
+      console.log(examDATA[0].theExam);
+
+
+
+
+      console.log(Questions)
+
       let True = 0;
-      Questions.forEach(e=>{
-        if(e.right_answer==e.student_answer){
+      for(let i=0; i<Questions.length; i++){
+        if(examDATA[0].theExam[i].right_answer==Questions[i].student_answer){
           True++
         }
-      });
+      }
+
 
 
       let id = `${(Math.random()*10000000).toFixed()}`;
-
-      await setDoc(doc(db,"exams",`${examDATA[0].id}`,`results`,`${id}`),{
+     
+      await setDoc(doc(db,"examsWithoutAnswers",`${examDATA[0].id}`,`results`,`${id}`),{
         id: id,
         userName: userName,
         phoneNumber: phoneNumber,
@@ -1054,7 +1115,7 @@ submitButton.addEventListener("click",async()=>{
         document.querySelector(".quiz-app").style.display="none";
 
       })
-     
+    
 
 
     };
@@ -1437,6 +1498,9 @@ async function generate(text) {
           Make the answer random, not just 'a'; it should be random between 'a', 'b', 'c', or 'd'.
   
           If the object has Arabic or any other language words, make the object choices 'a', 'b', 'c', 'd', not like 'ا', 'ب', 'ج', 'د'.
+          
+          dont add backticks in respone
+          
           `
       }),
     };
@@ -1448,6 +1512,7 @@ async function generate(text) {
     }
     
     let data = await response.json();
+    console.log(data);
     console.log(data.response);
     data=data.response;
     data = data.replace(/`/g, '');

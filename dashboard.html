@@ -180,12 +180,12 @@
 
 /* start import from firebase */
 
-  import {docName, initializeApp,firebaseConfig ,getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, updateDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt,endAt } from './firebase.js';
+  import {docName, initializeApp,firebaseConfig , onAuthStateChanged, getAuth ,getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, updateDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt,endAt } from './firebase.js';
 
   firebase.initializeApp(firebaseConfig);
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-
+  let auth = getAuth(app);
   const storage = firebase.storage();
   /**/
 
@@ -213,7 +213,7 @@ let AllStoreProducts;
 
 async function forAllExams(X){
 
-  const q = query(collection(db, "exams"),where("AdminId","==",`${mainPersonData.id}`), orderBy("date","desc"), limit(X||10));
+  const q = query(collection(db, "exams"),where("AdminId","==",`${mainPersonData.uid}`), orderBy("date","desc"), limit(X||10));
   const querySnapshot = await getDocs(q);
   const cityList = querySnapshot.docs.map(doc => doc.data());
 
@@ -246,7 +246,15 @@ let AllPersonsData;
 let mainPersonData;
 let docId = await localStorage.getItem(`${docName}`);
 
-if(docId!==null&&docId.trim()!==''){
+
+
+
+
+
+onAuthStateChanged(auth,async (user) => {
+    if (user) {
+
+
     // document.querySelector('.profile-btn').dataset.personid=docId;
     // mainPersonData=await getUserDataWithId(docId);
     mainPersonData= JSON.parse(localStorage.getItem(`${docName}_personData`));
@@ -264,16 +272,21 @@ if(docId!==null&&docId.trim()!==''){
     getAllExams();
     /* start getOrdersCount */
 
-    let q = query(collection(db, "exams"),where("AdminId","==",`${docId}`));
+    let q = query(collection(db, "exams"),where("AdminId","==",`${mainPersonData.uid}`));
     let snapshot = await getCountFromServer(q);
     document.querySelector(".PageOrdersCount").textContent=`${snapshot.data().count}`;
 
-    /* end getOrdersCount */
+
+        
+    } else {
+      location.href="./login/login.html"
+    }
+});
 
 
-} else {
-  location.href="./login/login.html"
-}
+
+
+
 
 /*  end check and get user doc */
 
@@ -441,7 +454,7 @@ SearchInput=SearchInput.trim();
 
 if(SearchField!==""&&SearchField!=="SearchInput"){
 
-  const q = query(collection(db, "exams"), where(SearchField, '==', SearchInput),where("AdminId","==",`${mainPersonData.id}`), orderBy("date","desc"),limit(5));
+  const q = query(collection(db, "exams"), where(SearchField, '==', SearchInput),where("AdminId","==",`${mainPersonData.uid}`), orderBy("date","desc"),limit(5));
 
   const querySnapshot = await getDocs(q);
   const cityList = querySnapshot.docs.map(doc => doc.data());
@@ -514,7 +527,7 @@ function showExams(array){
 
 
         <a>
-          <i title="نتايج الطلاب" class="fa-sharp fa-solid fa-circle-info examResults" data-id="${el.id}" style="font-size: 22px; color: white; background: black; border-radius: 50%; padding: 5px 5px; cursor: pointer;"></i>
+          <i title="نتائج الطلاب" class="fa-sharp fa-solid fa-circle-info examResults" data-id="${el.id}" style="font-size: 22px; color: white; background: black; border-radius: 50%; padding: 5px 5px; cursor: pointer;"></i>
         </a>
 
                       
@@ -586,41 +599,43 @@ if([...e.target.classList].includes("Result-Hidden")){
         isHidden: x,
       }).then(e=>{
 
-        examData.isHidden=x;
-
-        let trueAnswersShowBtn = [...document.querySelectorAll(`[data-id="${examId}"]`)].find(el=>[...el.classList].includes("trueAnswersShow-Hidden")==true)
-
-        console.log(trueAnswersShowBtn);
-
-        if(x){
-
-          // the result will appear to the students on the end of exam
-          icon.classList.remove("fa-eye");
-          icon.classList.add("fa-eye-slash");
-
-          // trueAnswersShowBtn will hidden
-          trueAnswersShowBtn.style.display="none";
-
-        }else{
-
-          // the result would not appear to the students on the end of exam
-          icon.classList.add("fa-eye");
-          icon.classList.remove("fa-eye-slash");
-
-          // trueAnswersShowBtn will show
-          trueAnswersShowBtn.style.display="unset";
+        updateDoc(doc(db,"examsWithoutAnswers",examId),{
+          isHidden: x,
+        }).then(e=>{
           
-        }
+          examData.isHidden=x;
 
+          let trueAnswersShowBtn = [...document.querySelectorAll(`[data-id="${examId}"]`)].find(el=>[...el.classList].includes("trueAnswersShow-Hidden")==true)
 
+          console.log(trueAnswersShowBtn);
 
-  
+          if(x){
 
-        Swal.fire(
-          'Done!',
-          '',
-          'success'
-        );
+            // the result will appear to the students on the end of exam
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+
+            // trueAnswersShowBtn will hidden
+            trueAnswersShowBtn.style.display="none";
+
+          }else{
+
+            // the result would not appear to the students on the end of exam
+            icon.classList.add("fa-eye");
+            icon.classList.remove("fa-eye-slash");
+
+            // trueAnswersShowBtn will show
+            trueAnswersShowBtn.style.display="unset";
+            
+          }
+
+          Swal.fire(
+            'Done!',
+            '',
+            'success'
+          );
+        })
+
 
       });
 
@@ -674,32 +689,38 @@ confirmButtonText: 'Yes'
       trueAnswersShowisHidden: x,
     }).then(e=>{
 
-      examData.trueAnswersShowisHidden=x;
+      updateDoc(doc(db,"examsWithoutAnswers",examId),{
+        trueAnswersShowisHidden: x,
+      }).then(e=>{
 
-      let trueAnswersShowBtn = [...document.querySelectorAll(`[data-id="${examId}"]`)].find(el=>[...el.classList].includes("trueAnswersShow-Hidden")==true)
-
-      console.log(trueAnswersShowBtn);
-
-      if(x){
-
-        // the true Answers for  will appear to the students on the end of exam
-        icon.classList.remove("fa-eye");
-        icon.classList.add("fa-eye-slash");
-
-      }else{
-
-        // the result would not appear to the students on the end of exam
-        icon.classList.add("fa-eye");
-        icon.classList.remove("fa-eye-slash");
-
-      }
-
-
-      Swal.fire(
-        'Done!',
-        '',
-        'success'
-      );
+        
+              examData.trueAnswersShowisHidden=x;
+        
+              let trueAnswersShowBtn = [...document.querySelectorAll(`[data-id="${examId}"]`)].find(el=>[...el.classList].includes("trueAnswersShow-Hidden")==true)
+        
+              console.log(trueAnswersShowBtn);
+        
+              if(x){
+        
+                // the true Answers for  will appear to the students on the end of exam
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+        
+              }else{
+        
+                // the result would not appear to the students on the end of exam
+                icon.classList.add("fa-eye");
+                icon.classList.remove("fa-eye-slash");
+        
+              }
+        
+        
+              Swal.fire(
+                'Done!',
+                '',
+                'success'
+              );
+      })
 
     });
 
@@ -729,7 +750,7 @@ if([...e.target.classList].includes("downloadAllResultsPdf")){
 
   let examId = e.target.dataset.id;
 
-  let q = query(collection(db,"exams",`${examId}`,`results`));
+  let q = query(collection(db,"examsWithoutAnswers",`${examId}`,`results`));
   let querySnapshot = await getDocs(q);
   let cityList = querySnapshot.docs.map(doc => doc.data());
   console.log(cityList);
@@ -802,7 +823,7 @@ if([...e.target.classList].includes("examResults")){
   let examId = e.target.dataset.id;
   console.log(examId)
 
-  let q = query(collection(db,"exams",`${examId}`,`results`));
+  let q = query(collection(db,"examsWithoutAnswers",`${examId}`,`results`));
   let snapshot = await getCountFromServer(q);
 
   Swal.fire({
@@ -810,7 +831,7 @@ if([...e.target.classList].includes("examResults")){
       html:`
 
       <bdi style="margin: 5px;font-size: 24px;font-family: cairo;font-weight: bold;">
-      نتايج الطلاب: ${snapshot.data().count} نتيجة
+      نتائج الطلاب: ${snapshot.data().count} نتيجة
       <i class="fa-solid fa-file-pdf downloadAllResultsPdf" data-id="${examId}" style="color: darkred; cursor: pointer; margin: 5px 10px;"></i>
       <a href="${location.origin+"/index.html?examResult="+examId}">
         <i class="fa-solid fa-link AllResultsLinkForStudents" title="لينك الاستعلام عن النتيجة للطلاب" data-id="${examId}" style="color: black; cursor: pointer; margin: 5px 10px;"></i>
@@ -843,7 +864,7 @@ if([...e.target.classList].includes("examResults")){
 
 
       if(SearchFiledForResult!==""&&SearchValueForResult!==""){
-        let q = query(collection(db,"exams",`${examId}`,`results`),where(`${SearchFiledForResult}`,"==",`${SearchValueForResult}`));
+        let q = query(collection(db,"examsWithoutAnswers",`${examId}`,`results`),where(`${SearchFiledForResult}`,"==",`${SearchValueForResult}`));
         let querySnapshot = await getDocs(q);
         let cityList = querySnapshot.docs.map(doc => doc.data());
 
@@ -852,7 +873,7 @@ if([...e.target.classList].includes("examResults")){
         } else{
           Swal.fire({
             title: `${cityList[0].userName+"<br>"+cityList[0].result}`,
-            icon: 'success',
+            icon: 'info',
             showCloseButton: true,
             showConfirmButton: false,
             showCancelButton: false,
@@ -894,11 +915,11 @@ if([...e.target.classList].includes("loadMoreBtn")){
   if(e.target.dataset.search!==undefined){
 
     let search = JSON.parse(e.target.dataset.search);
-    q = query(collection(db, "exams"),where("AdminId","==",`${mainPersonData.id}`),where(search.SearchField,"==",search.SearchInput),where("date","<",lastElementDate), orderBy("date","desc"), limit(X||5));
+    q = query(collection(db, "exams"),where("AdminId","==",`${mainPersonData.uid}`),where(search.SearchField,"==",search.SearchInput),where("date","<",lastElementDate), orderBy("date","desc"), limit(X||5));
   
   } else{
 
-    q = query(collection(db, "exams"),where("AdminId","==",`${mainPersonData.id}`),where("date","<",lastElementDate), orderBy("date","desc"), limit(X||5));
+    q = query(collection(db, "exams"),where("AdminId","==",`${mainPersonData.uid}`),where("date","<",lastElementDate), orderBy("date","desc"), limit(X||5));
   
   }
 
@@ -977,14 +998,18 @@ if([...e.target.classList].includes("removeOrder")){
   }).then((result) => {
     if (result.isConfirmed) {
 
-      let productId=e.target.dataset.id;
-      let productData=AllPersonsData.find(el=>el.id==`${productId}`);
+      let examId=e.target.dataset.id;
+      let productData=AllPersonsData.find(el=>el.id==`${examId}`);
 
-      let productDoc=doc(db, "exams", productId);
+      let examDoc=doc(db, "exams", examId);
 
-      deleteDoc(productDoc); 
+      deleteDoc(examDoc); 
 
-      AllPersonsData=AllPersonsData.filter(el=>el.id!==`${productId}`);
+      let examDoc2=doc(db, "examsWithoutAnswers", examId);
+
+      deleteDoc(examDoc2); 
+
+      AllPersonsData=AllPersonsData.filter(el=>el.id!==`${examId}`);
       document.querySelector("#AllOrders").innerHTML=``;
       showExams(AllPersonsData);
       Swal.fire(
@@ -1125,27 +1150,38 @@ async function editExam(examData){
                   examTime: examTime,
                 }).then(e=>{
 
-                  let mainEditedDiv = document.querySelector(`[data-id="${id}"]`)
-                  mainEditedDiv.querySelector(".Exam-Name").textContent=examName;
-                  mainEditedDiv.querySelector(".Exam-DateStart").textContent=returnDateAndTime(dateStart);
-                  mainEditedDiv.querySelector(".Exam-DateEnd").textContent=returnDateAndTime(dateEnd);
-                  mainEditedDiv.querySelector(".Exam-Time").textContent=examTime;
 
-                  
-                  let mainOrderFromAll = AllPersonsData.find(el=>el.id==`${id}`);
-                  mainOrderFromAll.examName=examName;
-                  mainOrderFromAll.dateStart=dateStart;
-                  mainOrderFromAll.dateEnd=dateEnd;
-                  mainOrderFromAll.examTime=examTime;
+                  updateDoc(doc(db,"examsWithoutAnswers",id), {
+                    examName: examName,
+                    dateStart: dateStart,
+                    dateEnd: dateEnd,
+                    examTime: examTime,
+                  }).then(e=>{
 
-                  // console.log(AllPersonsData)
-             
+                    let mainEditedDiv = document.querySelector(`[data-id="${id}"]`)
+                    mainEditedDiv.querySelector(".Exam-Name").textContent=examName;
+                    mainEditedDiv.querySelector(".Exam-DateStart").textContent=returnDateAndTime(dateStart);
+                    mainEditedDiv.querySelector(".Exam-DateEnd").textContent=returnDateAndTime(dateEnd);
+                    mainEditedDiv.querySelector(".Exam-Time").textContent=examTime;
+  
+                    
+                    let mainOrderFromAll = AllPersonsData.find(el=>el.id==`${id}`);
+                    mainOrderFromAll.examName=examName;
+                    mainOrderFromAll.dateStart=dateStart;
+                    mainOrderFromAll.dateEnd=dateEnd;
+                    mainOrderFromAll.examTime=examTime;
+  
+                    // console.log(AllPersonsData)
+               
+  
+                    Swal.fire(
+                      'تم التعديل',
+                      '',
+                      'success'
+                    );
 
-                  Swal.fire(
-                    'تم التعديل',
-                    '',
-                    'success'
-                  );
+                  })
+
 
                 });
 
@@ -1320,10 +1356,16 @@ async function AddNewExam(examName,dateStart,dateEnd,examTime,id){
       date: date,
       theExam: [],
       AdminName: mainPersonData.username,
-      AdminId: `${mainPersonData.id}`,
+      AdminEmail: mainPersonData.email,
+      AdminId: `${mainPersonData.uid}`,
     }).then(async e=>{
 
-      AllPersonsData=[{
+
+
+
+
+
+      setDoc(doc(db,"examsWithoutAnswers",id), {
         id: id,
         examName: examName,
         dateStart: dateStart,
@@ -1333,14 +1375,31 @@ async function AddNewExam(examName,dateStart,dateEnd,examTime,id){
         date: date,
         theExam: [],
         AdminName: mainPersonData.username,
-        AdminId:`${mainPersonData.id}`,
-      },...AllPersonsData];
+        AdminEmail: mainPersonData.email,
+        AdminId: `${mainPersonData.uid}`,
+      }).then(async e=>{
 
-      document.querySelector("#AllOrders").innerHTML=``;
-      await showExams(AllPersonsData);
+        AllPersonsData=[{
+          id: id,
+          examName: examName,
+          dateStart: dateStart,
+          dateEnd: dateEnd,
+          examTime: examTime,
+          examDate: examDate,
+          date: date,
+          theExam: [],
+          AdminName: mainPersonData.username,
+          AdminEmail: mainPersonData.email,
+          AdminId:`${mainPersonData.uid}`,
+        },...AllPersonsData];
 
-      Swal.fire("Done","","success")
-      console.log(AllPersonsData)
+        document.querySelector("#AllOrders").innerHTML=``;
+        await showExams(AllPersonsData);
+        Swal.fire("Done","","success")
+        console.log(AllPersonsData)
+      })
+
+
 
     });
 

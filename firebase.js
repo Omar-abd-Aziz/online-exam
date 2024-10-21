@@ -9,10 +9,19 @@ export const firebaseConfig = {
 
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js';
-import { getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, updateDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt, startAfter,endAt } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js';
+import { getAuth,onAuthStateChanged, sendPasswordResetEmail ,sendEmailVerification,createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js';
+import { getFirestore,getDocsFromServer,getAggregateFromServer,sum,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, addDoc, updateDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt, startAfter,endAt, writeBatch  } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js';
+
 
 
 let docName = "online-exam";
 
-export {docName,initializeApp,getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, setDoc, updateDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt, startAfter,endAt};
+export {docName,getDocsFromServer, getAggregateFromServer,sum,onAuthStateChanged,sendEmailVerification, sendPasswordResetEmail , getAuth,createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut ,initializeApp,getFirestore,getCountFromServer, collection, query, where, getDocs,getDoc, updateDoc, setDoc, addDoc, doc,deleteDoc,onSnapshot,orderBy, limit,startAt, startAfter,endAt, writeBatch};
+
+
+
+/// host on githup
+
+
+// firebase omarvenom22@gmail.com
 

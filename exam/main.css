@@ -4,6 +4,13 @@
 body {
   font-family: Tahoma, Arial,cairo;
 }
+
+
+
+
+
+
+
 .quiz-app {
   margin: 20px auto;
   width: 100%;
@@ -258,7 +265,8 @@ input[type="radio" i] {
 }
 
 .timer{
-  position: absolute;
+  position: fixed;
+  z-index: 10;
   top: 0;
   left: 0;
   background: black;
@@ -266,6 +274,7 @@ input[type="radio" i] {
   color: white;
   border-radius: 10px;
   margin: 10px;
+  background-image: radial-gradient(circle at 90% 24%, rgba(209, 209, 209,0.04) 0%, rgba(209, 209, 209,0.04) 50%,rgba(160, 160, 160,0.04) 50%, rgba(160, 160, 160,0.04) 100%),radial-gradient(circle at 91% 63%, rgba(45, 45, 45,0.04) 0%, rgba(45, 45, 45,0.04) 50%,rgba(87, 87, 87,0.04) 50%, rgba(87, 87, 87,0.04) 100%),radial-gradient(circle at 17% 2%, rgba(124, 124, 124,0.04) 0%, rgba(124, 124, 124,0.04) 50%,rgba(117, 117, 117,0.04) 50%, rgba(117, 117, 117,0.04) 100%),linear-gradient(88deg, rgb(33, 20, 105),rgb(1, 15, 13));
 }
 
 
